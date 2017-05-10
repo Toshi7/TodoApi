@@ -18,8 +18,55 @@ namespace TodoApi.Controllers
         {
             _todoRepository = todoRepository;
         }
+        [HttpPost]
+        public IActionResult Create([FromBody] TodoItem item)
+        {
+            if (item == null)
+            {
+                return BadRequest();
+            }
 
-            [HttpGet]
+            _todoRepository.Add(item);
+
+            return CreatedAtRoute("GetTodo", new { id = item.Key }, item);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(long id, [FromBody] TodoItem item)
+        {
+            if (item == null || item.Key != id)
+            {
+                return BadRequest();
+            }
+
+            var todo = _todoRepository.Find(id);
+            if (todo == null)
+            {
+                return NotFound();
+            }
+
+            todo.IsComplete = item.IsComplete;
+            todo.Name = item.Name;
+
+            _todoRepository.Update(todo);
+            return new NoContentResult();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(long id)
+        {
+            var todo = _todoRepository.Find(id);
+            if (todo == null)
+            {
+                return NotFound();
+            }
+
+            _todoRepository.Remove(id);
+            return new NoContentResult();
+        }
+
+
+        [HttpGet]
             public IEnumerable<TodoItem> GetAll()
             {
                 return _todoRepository.GetAll();
